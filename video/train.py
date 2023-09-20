@@ -17,7 +17,7 @@ from core.dist import (
 parser = argparse.ArgumentParser(description='E2FGVI')
 parser.add_argument('-c',
                     '--config',
-                    default='configs/train_e2fgvi.json',
+                    default='configs/train.json',
                     type=str)
 parser.add_argument('-p', '--port', default='23455', type=str)
 args = parser.parse_args()
