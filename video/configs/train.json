@@ -3,7 +3,7 @@
     "save_dir": "release_model/",
     "train_data_loader": {
         "name": "youtube-vos",
-        "data_root": "datasets",
+        "data_root": "dataset",
         "w": 432,
         "h": 240,
         "num_local_frames": 5,
@@ -17,7 +17,7 @@
         "GAN_LOSS": "hinge"
     },
     "model": {
-        "net": "e2fgvi_hq",
+        "net": "wave",
         "no_dis": 0
     },
     "trainer": {
