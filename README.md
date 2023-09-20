@@ -51,4 +51,4 @@ python ./video/test.py --model wave --video examples/schoolgirls.mp4 --mask exam
 5. `masked` in sample.py doesn't work in free from generated mask mod
 
 ## Note
-Use preprocess.py to resize data
+In image inpainting, use preprocess.py to resize data
