@@ -36,11 +36,12 @@ python sample.py
 ```
 ## Video inpainting train
 ```
-python ./video/train.py
+python ./video/train.py -c ./video/configs/train.json
 ```
 ## Video inpainting test
 ```
-python ./video/test.py
+python ./video/evaluate.py --model wave --dataset <dataset_name> --data_root ./video/dataset --ckpt ./video/wave_youtube-vos.pth
+python ./video/test.py --model wave --video examples/schoolgirls.mp4 --mask examples/schoolgirls_mask  --ckpt ./video/wave_youtube-vos.pth
 ```
 ## Params
 1. `batchsize` in WaveletUnit.py and sample.py must be same.
