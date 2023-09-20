@@ -49,5 +49,5 @@ python ./video/test.py
 4. `train_count` and `test_count` in sample.py must divisible by `batchsize`
 5. `masked` in sample.py doesn't work in free from generated mask mod
 
-##Note
+## Note
 Use preprocess.py to resize data
