@@ -34,6 +34,13 @@ git clone https://github.com/Jhh8856/Wavelet_Unit
 ```
 python sample.py
 ```
+## Params
+1. `batchsize` in WaveletUnit.py and sample.py must be same.
+2. `samp_seed` in sample.py must lower then dataset minus images for training.
+3. Change dataset path in `load_model()`(line 49 in sample.py)
+4. `train_count` and `test_count` in sample.py must divisible by `batchsize`
+5. `masked` in sample.py doesn't work in free from generated mask mod
+
 ## Video inpainting train
 ```
 python ./video/train.py -c ./video/configs/train.json
@@ -43,12 +50,5 @@ python ./video/train.py -c ./video/configs/train.json
 python ./video/evaluate.py --model wave --dataset <dataset_name> --data_root ./video/dataset --ckpt ./video/wave_youtube-vos.pth
 python ./video/test.py --model wave --video examples/schoolgirls.mp4 --mask examples/schoolgirls_mask  --ckpt ./video/wave_youtube-vos.pth
 ```
-## Params
-1. `batchsize` in WaveletUnit.py and sample.py must be same.
-2. `samp_seed` in sample.py must lower then dataset minus images for training.
-3. Change dataset path in `load_model()`(line 49 in sample.py)
-4. `train_count` and `test_count` in sample.py must divisible by `batchsize`
-5. `masked` in sample.py doesn't work in free from generated mask mod
-
 ## Note
 In image inpainting, use preprocess.py to resize data
