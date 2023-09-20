@@ -3,7 +3,7 @@
 ![圖片](https://github.com/Jhh8856/Wavelet_Unit/assets/42765536/9b36d7e3-8a77-412c-b1ae-6a26cc9cd3e4)
 
 ## Requirement
-#For image inpainting
+For image inpainting
 ```
 python == 3.7
 opencv-python == 4.5.5.64
@@ -11,7 +11,7 @@ tensorflow == 2.4.1
 Pillow
 numpy
 ```
-#For video inpainting
+For video inpainting
 ```
 python == 3.7
 Pillow
@@ -48,3 +48,6 @@ python ./video/test.py
 3. Change dataset path in `load_model()`(line 49 in sample.py)
 4. `train_count` and `test_count` in sample.py must divisible by `batchsize`
 5. `masked` in sample.py doesn't work in free from generated mask mod
+
+##Note
+Use preprocess.py to resize data
