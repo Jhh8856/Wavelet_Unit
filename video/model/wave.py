@@ -10,6 +10,7 @@ from model.modules.feat_prop import BidirectionalPropagation, SecondOrderDeforma
 from model.modules.tfocal_transformer_hq import TemporalFocalTransformerBlock, SoftSplit, SoftComp
 from model.modules.spectral_norm import spectral_norm as _spectral_norm
 
+from pytorch_wavelets import DWTForward, DWTInverse
 
 class BaseNetwork(nn.Module):
     def __init__(self):
@@ -66,6 +67,107 @@ class BaseNetwork(nn.Module):
         for m in self.children():
             if hasattr(m, 'init_weights'):
                 m.init_weights(init_type, gain)
+
+class Wavelet(nn.Mudule):
+    def __init__(self, feature, r1, r2, r1_2, r2_2, r3, r3_2, r4, r4_2, r5, r5_2, r6, r7):
+        super().__init__()
+
+        def batch_norm(a):
+            v_h, m_h = torch.var_mean(a)
+            h_batch_norm = torch.nn.functional.batch_norm(a, m_h, v_h)
+            return h_batch_norm
+
+        def Weight_Standardization(kernel, epsilon=1e-5):
+            kernel_mean = torch.mean(kernel)
+            kernel_std = torch.std(torch.sub(torch.kernel, kernel_mean))
+            kernel_f = torch.div(kernel, (torch.add(kernel_std, epsilon)))
+            return kernel_f
+
+        self.w = DWTForward(J=3, mode='zero', wave='db3')
+        self.w_i = DWTInverse(mode='zero', wave='db3')
+
+        r1 = Weight_Standardization(r1)
+        r2 = Weight_Standardization(r2)
+        r1_2 = Weight_Standardization(r1_2)
+        r2_2 = Weight_Standardization(r2_2)
+        r3 = Weight_Standardization(r3)
+        r3_2 = Weight_Standardization(r3_2)
+        r4 = Weight_Standardization(r4)
+        r4_2 = Weight_Standardization(r4_2)
+        r5 = Weight_Standardization(r5)
+        r5_2 = Weight_Standardization(r5_2)
+        r6 = Weight_Standardization(r6)
+        r7 = Weight_Standardization(r7)
+
+        _, self.y_r1, self.y_r2, self.y_i = torch.split(feature, 4, dim=-1)
+        self.y_r = batch_norm(torch.add(y_r1, y_r2))
+
+        # r = tf.random.normal([1, 1, tf.shape(y_r)[-1], tf.shape(y_r)[-1]])
+        self.y_r_nor = nn.conv2d(y_r, r1)
+        self.y_r_nor = torch.nn.functional.leaky_relu(y_r_nor)
+        # r2 = tf.random.normal([1, 1, tf.shape(y_i)[-1], tf.shape(y_i)[-1]])
+        self.y_i_nor = nn.conv2d(y_i, r2)
+        self.y_i_nor = torch.nn.functional.leaky_relu(y_i_nor)
+        # r1_3x3 = tf.random.normal([1, 1, tf.shape(y_r)[-1], tf.shape(y_r)[-1]])
+        self.y_r3x3 = nn.conv2d(y_r_nor, r1_2)
+        self.y_r3x3 = torch.nn.functional.leaky_relu(y_r3x3)
+        # r2_3x3 = tf.random.normal([1, 1, tf.shape(y_i)[-1], tf.shape(y_i)[-1]])
+        self.y_i3x3 = nn.conv2d(y_r_nor, r2_2)
+        self.y_i3x3 = torch.nn.functional.leaky_relu(y_i3x3)
+        self.freq_y_i_low, self.y_i = w(y_i_nor)
+        # print(freq_y_i)
+        freq_y_i_mid1, freq_y_i_mid2, freq_y_i_high = torch.split(freq_y_i, 3, dim=2)
+        # freq_y_i_mid = tf.concat((freq_y_i_mid1, freq_y_i_mid2), axis=-1)
+        #print(freq_y_i_low)
+        #print(freq_y_i_mid1)
+        #print(freq_y_i_high)
+
+        self.y_sm1 = freq_y_i_mid1
+        # r3 = tf.random.normal([1, 1, tf.shape(y_sm)[-1], tf.shape(y_sm)[-1]])
+        self.y_sm1 = conv2d(y_sm1, r3)
+        self.y_sm1 = conv2d(y_sm1, r3_2)
+        self.y_sm1 = torch.nn.functional.leaky_relu(y_sm1_2)
+
+        self.y_sm2 = freq_y_i_mid1
+        # r3 = tf.random.normal([1, 1, tf.shape(y_sm)[-1], tf.shape(y_sm)[-1]])
+        self.y_sm2 = conv2d(y_sm2, r4)
+        self.y_sm2 = conv2d(y_sm2, r4_2)
+        self.y_sm2 = torch.nn.functional.leaky_relu(y_sm2)
+
+        self.y_sh = freq_y_i_high
+        # r4 = tf.random.normal([1, 1, tf.shape(y_sh)[-1], tf.shape(y_sh)[-1]])
+        self.y_sh = tf.nn.conv2d(y_sh, r5)
+        self.y_sh = tf.nn.conv2d(y_sh, r5_2)
+        self.y_sh = torch.nn.functional.leaky_relu(y_sh)
+
+        #print(freq_y_i_low)
+        #print(y_sm1)
+        #print(y_sh)
+        self.y_s = torch.concat((freq_y_i_low, y_sm1, y_sm2, y_sh), dim=-1)
+        #print(y_s)
+        # z_r, z_i = tf.split(y_s, num_or_size_splits=2, axis=-1)
+        # z = tf.dtypes.complex(z_r, z_i)
+        # z = tf.signal.irfft2d(z)
+        # w_i = WaveTFFactory().build('db2', dim=2, inverse=True)
+        self.z = w_i(y_s)
+        # r5 = tf.random.normal([1, 1, tf.shape(z)[-1], tf.shape(z)[-1]])
+        self.spectral = conv2d(z, r6)
+        self.spectral = torch.nn.functional.leaky_relu(spectral)
+
+        self.global_feature = torch.add(y_r3x3, spectral)
+        self.global_feature = torch.nn.functional.leaky_relu(global_feature)
+
+        self.local_feature = torch.add(y_r3x3, y_i3x3)
+        self.local_feature = torch.nn.functional.leaky_relu(local_feature)
+
+        self.final_a = torch.concat((global_feature, local_feature), dim=-1)
+        self.final_conv = conv2d(final_a, r7)
+        self.final = tf.nn.leaky_relu(final_conv)
+
+    def forward(self, x):
+        x = F.interpolate(x, mode='bilinear', align_corners=True)
+
+        return self.final(x)
 
 
 class Encoder(nn.Module):
