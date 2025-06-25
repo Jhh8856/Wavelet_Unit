@@ -68,7 +68,7 @@ class BaseNetwork(nn.Module):
             if hasattr(m, 'init_weights'):
                 m.init_weights(init_type, gain)
 
-class Wavelet(nn.Mudule):
+class Wavelet(nn.Module):
     def __init__(self, feature, r1, r2, r1_2, r2_2, r3, r3_2, r4, r4_2, r5, r5_2, r6, r7):
         super().__init__()
 
@@ -173,6 +173,20 @@ class Wavelet(nn.Mudule):
 class Encoder(nn.Module):
     def __init__(self):
         super(Encoder, self).__init__()
+
+        self.r1 = torch.nn.Parameter(requires_grad=True)
+        self.r2 = torch.nn.Parameter(requires_grad=True)
+        self.r1_2 = torch.nn.Parameter(requires_grad=True)
+        self.r2_2 = torch.nn.Parameter(requires_grad=True)
+        self.r3 = torch.nn.Parameter(requires_grad=True)
+        self.r3_2 = torch.nn.Parameter(requires_grad=True)
+        self.r4 = torch.nn.Parameter(requires_grad=True)
+        self.r4_2 = torch.nn.Parameter(requires_grad=True)
+        self.r5 = torch.nn.Parameter(requires_grad=True)
+        self.r5_2 = torch.nn.Parameter(requires_grad=True)
+        self.r6 = torch.nn.Parameter(requires_grad=True)
+        self.r7 = torch.nn.Parameter(requires_grad=True)
+
         self.group = [1, 2, 4, 8, 1]
         self.layers = nn.ModuleList([
             nn.Conv2d(3, 64, kernel_size=3, stride=2, padding=1),
@@ -209,6 +223,9 @@ class Encoder(nn.Module):
                 o = out.view(bt, g, -1, h, w)
                 out = torch.cat([x, o], 2).view(bt, -1, h, w)
             out = layer(out)
+        out = Wavelet(out, r1, r2, r1_2, r2_2,
+                      r3, r3_2, r4, r4_2, r5,
+                      r5_2, r6, r7)
         return out
 
 
