@@ -25,7 +25,7 @@ pyparsing==3.0.8
 pyyaml==6.0
 tqdm==4.64.0
 yapf==0.32.0
-pytorch_wavelet==1.3.0
+pytorch_wavelets==1.3.0
 ```
 ## Clone Repo
 ```
