@@ -52,4 +52,4 @@ python ./video/evaluate.py --model wave --dataset <dataset_name> --data_root ./v
 python ./video/test.py --model wave --video examples/schoolgirls.mp4 --mask examples/schoolgirls_mask  --ckpt ./video/wave_youtube-vos.pth
 ```
 ## Note
-In image inpainting, use preprocess.py to resize data
+For image inpainting, use preprocess.py to resize data
